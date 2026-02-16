@@ -1,0 +1,17 @@
+# Output files
+output/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# PDF lab handout (large file)
+*.pdf
