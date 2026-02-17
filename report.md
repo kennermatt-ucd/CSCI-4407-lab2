@@ -1,8 +1,8 @@
 # Lab 2 — Modular Arithmetic and XOR-Based Encryption
 
 **Course:** Security & Cryptography
-**Date:** [DATE]
-**Group Members:** [NAMES]
+**Date:** 02/16/2026
+**Group Members:** Matthew Kenner, Cassius Kemp, Jonathan Le
 
 ---
 
@@ -11,27 +11,66 @@
 ### Source Code
 
 ```python
-# [PASTE XOR TOOL SOURCE CODE HERE]
+#!/usr/bin/env python3
+"""Task 1 — XOR Encryption/Decryption Tool"""
+
+import sys
+
+
+def xor_file(mode, input_path, output_path, key):
+    """XOR each byte of input file with key and write to output."""
+    with open(input_path, "rb") as f:
+        data = f.read()
+
+    result = bytes(b ^ key for b in data)
+
+    with open(output_path, "wb") as f:
+        f.write(result)
+
+    first16 = result[:16].hex(" ")
+    print(f"Mode:            {mode}")
+    print(f"Key:             0x{key:02x} ({key})")
+    print(f"Input size:      {len(data)} bytes")
+    print(f"First 16 bytes:  {first16}")
+
+
+def main():
+    if len(sys.argv) != 5:
+        print(f"Usage: {sys.argv[0]} encrypt|decrypt <input> <output> <hex_key>")
+        sys.exit(1)
+
+    mode = sys.argv[1]
+    input_path = sys.argv[2]
+    output_path = sys.argv[3]
+    key = int(sys.argv[4], 16)
+
+    xor_file(mode, input_path, output_path, key)
+
+
+if __name__ == "__main__":
+    main()
+
 ```
 
 ### Screenshots
 
-[INSERT SCREENSHOT: Encryption run]
+![alt text](Screenshots/xor_tool_enc_dec.png)
+![alt text](Screenshots/xor_tool_text.png)
+![alt text](Screenshots/xor_tool_img_with_typo.png)
+![alt text](Screenshots/xor_tool_pairs.png)
 
-[INSERT SCREENSHOT: Decryption run]
 
-### Verification Evidence
-
-[INSERT SCREENSHOT OR OUTPUT: File comparison showing original and decrypted files match]
-
-```
-# [PASTE COMPARISON COMMAND OUTPUT HERE, e.g. diff, md5sum, etc.]
-```
 
 ### Explanation of XOR Symmetry
 
-[EXPLAIN why XOR encryption and decryption use the same operation, i.e. why (P XOR K) XOR K = P]
+XOR encryption and decryption use the same operation because XOR is self-inverse, meaning applying the same XOR operation twice with the same key restores the original data.
 
+```
+(P XOR K) XOR K
+= P XOR (K XOR K)
+= P XOR 0
+= P
+```
 ---
 
 ## Task 2 — Break XOR via Brute Force (25 pts)
