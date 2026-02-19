@@ -170,9 +170,9 @@ Remember:
 
 ### Screenshots
 
-![alt text](Screenshots/bruteforce_xor_py_results)
+![alt text](Screenshots/bruteforce_xor_py_results.png)
 
-![alt text](Screenshots/bruteforce_xor_py_plaintext)
+![alt text](Screenshots/bruteforce_xor_py_plaintext.png)
 
 ### Explanation of Scoring Logic
 
