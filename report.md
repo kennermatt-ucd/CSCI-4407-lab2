@@ -1,4 +1,4 @@
-# Lab 2 — Modular Arithmetic and XOR-Based Encryption
+<img width="636" height="217" alt="image" src="https://github.com/user-attachments/assets/ddc8b958-579f-4f85-9a5d-776b654fc719" /># Lab 2 — Modular Arithmetic and XOR-Based Encryption
 
 **Course:** Security & Cryptography
 **Date:** 02/16/2026
@@ -78,28 +78,105 @@ XOR encryption and decryption use the same operation because XOR is self-inverse
 ### Source Code
 
 ```python
-# [PASTE BRUTE FORCE SCRIPT HERE]
+#!/usr/bin/env python3
+"""Task 2 — Brute Force Single-Byte XOR"""
+
+import sys
+
+def get_PlainTextScore(data):
+    """
+    Calculates a score for a byte string based on character frequency.
+    Higher score = more likely to be plain text.
+    """
+    Score = 0
+    #ASCII range: space (32) to tilde (126)
+    #Whitespace: tab (9), newline (10), carriage return (13)
+
+    for byte in data:
+        #Checks if our byte is printable or common whitespace
+        if (32 <= byte <= 126) or byte in [9, 10, 13]:
+            Score += 1
+
+        #Characters that don't often appear in text (Something like null bytes) will negatively increment the score to filter the data.
+        elif byte < 32 or byte > 126:
+            Score -= 1
+
+    return Score
+
+def main():
+    Filename = 'xor_chal_text.bin'
+
+    #Reads the ciphertext file
+    try:
+        with open(Filename, 'rb') as f:
+            Ciphertext = f.read()
+    except FileNotFoundError:
+        print(f"Error: Could not find '{Filename}'.")
+        print("Make sure the file is in the same directory as this script.")
+        sys.exit(1)
+
+    print(f"[*] Loaded {len(Ciphertext)} bytes from {Filename}")
+    print("[*] Starting brute-force attack (0x00 - 0xFF)...\n")
+
+    Candidates = []
+
+    #Try every possible key from 0 to 255
+    for key in range(256):
+
+        #Decrypt the data with the current key
+        DecryptedData = bytes([b ^ key for b in Ciphertext])
+        #Scores our result
+        Score = get_PlainTextScore(DecryptedData)
+        #Stores the data: (Score, key, DecryptedData)
+        Candidates.append((Score, key, DecryptedData))
+
+    #Sorts the candidates by their score (highest score is listed first)
+    Candidates.sort(key=lambda x: x[0], reverse=True)
+
+    #Print the Highest scoring 3 results
+    print("--- TOP 3 CANDIDATES ---")
+    for i in range(3):
+        Score, key, Plaintext = Candidates[i]
+
+        #Converts the  bytes to a string for display
+        Preview = Plaintext[:60].decode('utf-8', errors='replace').replace('\n', ' ')
+        print(f"Rank {i+1}: Key = {hex(key)} ({key}) | Score: {Score}")
+        print(f"Preview: {Preview}...")
+        print("-" * 40)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ### Recovered Key
 
-**Key:** [HEX VALUE]
+**Key:** [0x4d]
 
 ### Recovered Plaintext
 
 ```
-[PASTE RECOVERED PLAINTEXT HERE]
+CSCI/CSCY 4407 - Security & Cryptography (Spring 2026)
+Lab 2: XOR Brute Force Challenge
+
+If you can read this message clearly, you recovered the correct XOR key.
+
+Group: 10
+Hint: English text + punctuation + spaces should appear normal.
+
+Remember:
+- Single-byte XOR keys are weak (only 256 possibilities).
+- Validation matters: readable text is not enough; justify why it is correct.
 ```
 
 ### Screenshots
 
-[INSERT SCREENSHOT: Script execution showing brute force results]
+![alt text](Screenshots/bruteforce_xor_py_results)
 
-[INSERT SCREENSHOT: Recovered plaintext output]
+![alt text](Screenshots/bruteforce_xor_py_plaintext)
 
 ### Explanation of Scoring Logic
 
-[EXPLAIN how your scoring function works — e.g. printable ASCII ratio, English word detection, character frequency analysis, etc.]
+The scoring function uses a frequency detection method to score the results of using each encryption key. The file sorts out non-regular characters (like null characters) as it iterates through the encrypted text giving a negative score each time it comes across one. At the same time while iterating through the string, when a character in the ASCII range of 32 - 126 it is considered printable and is give a positive score. This means that when we find the correct key it should have the highest score as it has the most printable characters of the different stings. However, some other keys may provide the same score as the correct key, which is why we include a preview of the decrypted text to let the user find the correct key.
 
 ---
 
