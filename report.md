@@ -1,4 +1,4 @@
-<img width="636" height="217" alt="image" src="https://github.com/user-attachments/assets/ddc8b958-579f-4f85-9a5d-776b654fc719" /># Lab 2 — Modular Arithmetic and XOR-Based Encryption
+# Lab 2 — Modular Arithmetic and XOR-Based Encryption
 
 **Course:** Security & Cryptography
 **Date:** 02/16/2026
