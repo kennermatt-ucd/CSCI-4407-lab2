@@ -53,7 +53,7 @@ def main():
     #Sorts the candidates by their score (highest score is listed first)
     Candidates.sort(key=lambda x: x[0], reverse=True)
 
-    #Print the first 3 results
+    #Print the Highest scoring 3 results
     print("--- TOP 3 CANDIDATES ---")
     for i in range(3):
         Score, key, Plaintext = Candidates[i]
