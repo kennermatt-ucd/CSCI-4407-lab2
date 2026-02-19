@@ -53,9 +53,9 @@ def main():
     #Sorts the candidates by their score (highest score is listed first)
     Candidates.sort(key=lambda x: x[0], reverse=True)
 
-    #Print the first 5 results
-    print("--- TOP 5 CANDIDATES ---")
-    for i in range(5):
+    #Print the first 3 results
+    print("--- TOP 3 CANDIDATES ---")
+    for i in range(3):
         Score, key, Plaintext = Candidates[i]
 
         #Converts the  bytes to a string for display
