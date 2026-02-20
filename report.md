@@ -261,27 +261,72 @@ The scoring function uses a frequency detection method to score the results of u
 
 **Known PNG header bytes:** `89 50 4E 47 0D 0A 1A 0A`
 
-**First encrypted byte(s):** [HEX VALUE]
+**First encrypted byte(s):** `c4 1d 03 0a 40 47 57 47`
 
-**Recovered key:** [HEX VALUE]
+**Recovered key:** 0x4d
 
-[EXPLAIN the XOR operation used to recover the key from the known header]
+
+
+To recover the key, we used the known PNG file signature. Every valid PNG file begins with the fixed 8-byte header:
+
+89 50 4E 47 0D 0A 1A 0A
+
+Since the encryption method was single-byte XOR, the relationship between plaintext (P), ciphertext (C), and key (K) is:
+
+C = P ⊕ K
+
+To recover the key, we rearrange the equation:
+
+K = C ⊕ P
+
+Using the first byte:
+
+C₀ = 0xC4  
+P₀ = 0x89  
+
+Compute:
+
+0xC4 ⊕ 0x89 = 0x4D
+
+This reveals the key used for encryption was:
+
+K = 0x4D
+
+To verify correctness, we XORed additional ciphertext bytes with 0x4D and confirmed they reproduced the correct PNG header values. After decrypting the entire file using key 0x4D, the output was identified as a valid PNG image.
+
 
 ### Source Code
 
 ```python
-# [PASTE KEY RECOVERY / DECRYPTION SCRIPT HERE]
+cipher_byte = 0xC4
+plain_byte = 0x89
+key = cipher_byte ^ plain_byte
+print(hex(key))
 ```
 
 ### Verification Screenshots
 
-[INSERT SCREENSHOT: Encrypted file hex inspection]
+![Task 3 - Encrypted Hex Output](Screenshots/lab2_task3pt1.png)
 
 [INSERT SCREENSHOT: Decrypted PNG image opened successfully]
-
+![Task 3 - Decrypted PNG opened successfully](Screenshots/task3pt2.png)
 ### Explanation of Known-Plaintext Attack
 
-[EXPLAIN why knowing part of the plaintext allows recovery of the key, and why this is a fundamental weakness of XOR encryption]
+This attack succeeds because part of the plaintext is predictable. The PNG file format has a fixed and publicly known header. Since XOR encryption is reversible, knowing even one plaintext byte allows direct recovery of the key:
+
+K = C ⊕ P
+
+Because the same single-byte key was reused across the entire file, recovering the key from just one known byte allowed complete decryption of the ciphertext.
+
+This demonstrates a fundamental weakness of simple XOR encryption:
+
+If the key is reused, security collapses.
+
+If plaintext contains predictable structure, it becomes vulnerable to known-plaintext attacks.
+
+XOR provides no security when small key spaces or repeated keys are used.
+
+Even partial knowledge of plaintext completely compromises the encrypted file.
 
 ---
 
