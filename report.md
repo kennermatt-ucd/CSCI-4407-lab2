@@ -71,6 +71,86 @@ XOR encryption and decryption use the same operation because XOR is self-inverse
 = P XOR 0
 = P
 ```
+### Questions (1-9)
+
+1. The encryption key is provided as a hexadecimal string (e.g., e7). Explain why this value must first be converted into an integer before applying the XOR operation.  
+
+	Computers perform the XOR operation on binary numbers (So that bits can be selected base on the XOR criteria) not on text characters. The key "e7" is a smiple hexadecimal representation using two characters (e and 7, Both of which can be used in XOR in their current state). To perform a bitwise XOR operation the program must convert the "e7" into the binary value it is equivalent so it can change the bits needed.  
+
+2. What is the decimal value of the hexadecimal key e7? Why must this decimal value be used during the XOR operation instead of the string "e7"?  
+
+   	Numerical Value (Decimal): (14 × 16^(1)) + (7 × 16^(0)) = 224 + 7 = 231.
+	The XOR operation works at the bit level therefore it can't process deciaml or hex values only their binary equivalents. The decimal value 231 equals the binary sequence 11100111 and 231 is equivalent to e7! If you used the hex value "e7" your computer would see two separate bytes (ASCII e = 101, ASCII 7 = 55) and this would cause an error to occur with our XOR operation.  
+
+3. What would occur if you attempted to XOR a byte directly with the string “e7” without converting it to an integer?  
+
+	In Python this would cause a TypeError, this is because it cannot perform bitwise operations between an integer and a string(e and 7). The program would lock up and not complete the operation as it cant perform the XOR operation.  
+
+4. When encrypting a file, your program prints output similar to.  
+	Mode: encrypt  
+	Key: 0xe7  
+	Input size: 17 bytes  
+	First 16 output bytes (hex): ...  
+	
+	Explain the meaning of each of the followinf fields:  
+	
+	Mode  
+	Key  
+	Input size  
+	First 16 output bytes  
+
+    Mode: Indicates the operation being performed by the program (either encryption or decryption).  
+    Key: The hexadecimal version of the key (value used to encrypt and decrypt) used to change the plaintext into ciphertext (and vice versa).  
+    Input size: The total length of the file being processed in bytes.  
+    First 16 output bytes: A hex preview of the encrypted or decrypted data, This provides the with visual to verify that the data has been modified properly.  
+
+5. Demonstrate mathematically why XOR is symmetric, i.e., why:  
+   
+	(P⊕K)⊕K=P.
+
+	XOR has two critical properties:
+    	Self-Inverse: Any value computed by the XOR operation that is XOR'd byitself turns into zero (K⊕K=0).  
+    	Identity: Any value that is XOR'd with zero remains unchanged (P⊕0=P).  
+
+	Examples from Cryptography:  
+		Ciphertext = P ⊕ K  
+		Decryption = (P ⊕ K) ⊕ K  
+		Associative Property = P ⊕ (K ⊕ K)  
+		Self−Inverse = P ⊕ 0  
+		Identity = P  
+
+6. Using ASCII values, manually compute the encryption of the first character of your plaintext file using the key e7. (hello.txt)
+
+    ASCII value of the character ('H'): 72  
+
+    Binary representation of the character: 01001000  
+
+    Binary representation of the key (e7): 11100111  
+
+    Resulting ciphertext byte in binary:  
+
+    01001000 (Plaintext 'H')  
+    11100111 (Key e7)  
+	---------------------------  
+	XOR OPERATION  
+	---------------------------  
+    10101111 (Result)  
+	
+	Split into Bytes: 1010 1111  
+
+    Ciphertext in hexadecimal: af  
+
+    (Binary 1010 = Hex a, Binary 1111 = Hex f)  
+
+7. Compare your manual computation with the first byte shown in the encryption output. Do they match? Explain why.  
+	They should match exactly, our program performs the exact XOR operation that I completed in Question 6.  
+
+8. How many possible keys exist in a single-byte XOR encryption system?  
+	There are 256 possible keys, since a single byte consists of 8 bits (2^(8)) the range is 0x00 to 0xFF.  
+
+9. Explain why a small key space makes this encryption method vulnerable to brute-force attacks.  
+	A key space of 256 is massively small for modern computing capabilities a proper bruteforce attack involves trying every possible key till the correct key is found or just every single one possible. An average laptop can even test billions of keys per second therefore, testing only 256 keys takes a fraction of a microsecond meaing an attacker without question can decrypt the message without knowing the key originally.
+
 ---
 
 ## Task 2 — Break XOR via Brute Force (25 pts)
