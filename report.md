@@ -719,8 +719,8 @@ If reused, the key cancels when ciphertexts are XORed, exposing P1 ⊕ P2 and al
 
 ### Full Script Listings
 
-[OPTIONAL: Include complete scripts if not fully shown above]
+N/A Shown Above
 
 ### Additional Screenshots
 
-[OPTIONAL: Include any additional supporting evidence]
+N/A Shown Above
