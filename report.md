@@ -330,6 +330,142 @@ Even partial knowledge of plaintext completely compromises the encrypted file.
 
 ---
 
+Questions: Image Header Attack (Known-Plaintext Attack, KPA)
+1. What is a known-plaintext attack? Define it clearly and explain how it applies to this
+task.
+
+A known-plaintext attack (KPA) is when an attacker knows part of the original plaintext and uses that information to recover the encryption key or additional plaintext.
+
+In this task, we knew that the encrypted file was supposed to be a PNG image. PNG files always begin with a fixed 8-byte header. Since we knew those first 8 plaintext bytes, we could XOR them with the first 8 ciphertext bytes to recover the encryption key.
+
+2. Why do PNG files provide an advantage to an attacker in this scenario? What property
+of the PNG format makes key recovery possible?
+
+PNG files have a fixed and publicly defined header. Every PNG file starts with the same 8 bytes. This predictable structure gives the attacker known plaintext at the beginning of the file.
+
+Because XOR encryption is reversible, knowing even one plaintext byte allows direct recovery of the key if the same key is reused.
+
+3. Write the hexadecimal representation of the standard PNG file header. Why is this
+header fixed across all PNG files?
+
+89 50 4E 47 0D 0A 1A 0A
+This header is fixed across all PNG files because it identifies the file format and ensures compatibility across systems. It acts as a file signature.
+
+4. Let the first byte of the ciphertext be C0. Show mathematically how the XOR key can
+be recovered using:
+K= C0 ⊕ 0x89
+Explain why this works.
+
+Let:
+
+C₀ = first ciphertext byte
+P₀ = first plaintext byte = 0x89
+
+We know:
+
+C₀ = P₀ ⊕ K
+
+Rearrange to solve for K:
+
+K = C₀ ⊕ P₀
+
+Since P₀ = 0x89:
+
+K = C₀ ⊕ 0x89
+
+This works because XOR is reversible. If:
+
+A ⊕ B = C
+
+Then:
+
+C ⊕ A = B
+
+So XORing the ciphertext byte with the known plaintext byte reveals the key.
+
+5. After recovering the key using the first byte, how can you verify that the key is correct
+using the remaining 7 header bytes?
+
+Once we compute the key using the first byte, we apply it to the next 7 ciphertext bytes:
+
+Ci ⊕ K
+
+If the results match the expected PNG header bytes:
+
+50 4E 47 0D 0A 1A 0A
+
+then the key is correct.
+
+If they do not match, the key guess is incorrect.
+
+6. Demonstrate the verification (use Pen and Paper) mathematically using:
+Ci ⊕ K= Pi
+for i = 0, 1, . . . , 7.
+
+For i = 0 to 7:
+
+Pi = Ci ⊕ K
+
+For example:
+
+P₀ = C₀ ⊕ K = 0x89
+P₁ = C₁ ⊕ K = 0x50
+P₂ = C₂ ⊕ K = 0x4E
+
+If all values match the PNG header, then K is correct.
+
+7. Why does recovering even a single correct plaintext byte allow recovery of the entire
+key in single-byte XOR encryption?
+
+In single-byte XOR encryption, the same key byte is applied to every plaintext byte.
+
+If:
+
+Ci = Pi ⊕ K
+
+Then knowing any correct Pi allows us to compute:
+
+K = Ci ⊕ Pi
+
+Since the same K is reused for the entire file, recovering it once decrypts everything.
+
+8. After decrypting the full file, how did you verify that the result is a valid PNG image?
+List the Linux commands used and explain what each confirms.
+
+After decrypting the file we used:
+```python
+file recovered.png
+```
+This command was used to check the file signature and if it is recognized as a png.
+
+```python
+xdg-open recovered.png
+```
+This opens the image in a viewer to visually confirm that the file is readable.
+
+If the file command identifies it as PNG image data, the decryption was successful.
+
+9. Suppose the XOR key were multi-byte instead of single-byte. Would the same header
+attack still work? Explain your reasoning.
+
+Yes, but slightly differently. If the key were multi-byte and repeated, we could recover each key byte by aligning the known header bytes with their corresponding ciphertext positions.
+
+10. Why is XOR encryption without randomness particularly vulnerable to format-based
+attacks?
+
+XOR encryption is deterministic. If the same key is reused and there is predictable structure in the plaintext (such as file headers), the attacker can directly compute the key.
+Without randomness or unique keys per message, predictable file formats make the system easy to break.
+
+11. Modern stream ciphers (e.g., AES-CTR) use nonces. Explain how nonce usage prevents
+this type of vulnerability.
+
+AES-CTR generates a keystream based on a key and a nonce. The nonce ensures that even if the same key is reused, the keystream is different for each message.If the nonce is never reused, then ciphertexts encrypted under the same key will not produce identical keystreams, preventing key cancellation attacks like the one in this task.
+
+12. Reflect on this task: What does this exercise teach about the relationship between
+predictable structure and cryptographic security?
+
+This exercise shows that predictable structure in data can break encryption if the cryptographic design is weak. Even simple file headers can be enough to recover keys if encryption is improperly implemented. It highlights that secure cryptography is not just about using XOR or encryption algorithms, it is about proper key management and randomness.
+
 ## Task 4 — Two-Time Pad Attack (25 pts)
 
 ### XOR of Ciphertexts
