@@ -333,37 +333,171 @@ Even partial knowledge of plaintext completely compromises the encrypted file.
 ## Task 4 — Two-Time Pad Attack (25 pts)
 
 ### XOR of Ciphertexts
-
+We computed `C1 ⊕ C2` by XORing `xor_pair_1.bin` and `xor_pair_2.bin` byte-by-byte to produce `pair_xor.bin`.
 ```python
-# [PASTE SCRIPT OR COMMAND USED TO XOR THE TWO CIPHERTEXT FILES]
+# make_pair_xor.py
+with open("xor_pair_1.bin", "rb") as f1, open("xor_pair_2.bin", "rb") as f2:
+    c1 = f1.read()
+    c2 = f2.read()
+
+n = min(len(c1), len(c2))
+pair_xor = bytes([c1[i] ^ c2[i] for i in range(n)])
+
+with open("pair_xor.bin", "wb") as out:
+    out.write(pair_xor)
+
+print(f"Wrote pair_xor.bin ({n} bytes)")
 ```
+
+Because:
+C1 = P1 ⊕ K
+C2 = P2 ⊕ K
+
+Then:
+C1 ⊕ C2 = (P1 ⊕ K) ⊕ (P2 ⊕ K)
+Since K ⊕ K = 0, the keystream cancels out:
+C1 ⊕ C2 = P1 ⊕ P2
+
+This eliminates the key entirely and exposes the relationship between the two plaintexts.
 
 ### Recovered Plaintext Segments
 
 | Offset | Crib Used | Recovered Text |
 |--------|-----------|----------------|
-| [OFFSET] | [WORD] | [RECOVERED SEGMENT] |
-| [OFFSET] | [WORD] | [RECOVERED SEGMENT] |
-| [OFFSET] | [WORD] | [RECOVERED SEGMENT] |
+| 37 | Stream Cipher | ns secrecy into |
+| 23 | Key Reuse | never reus |
+| 25 | Key Reuse | d yeuse tu |
 
+---
 ### Method and Reasoning
 
-[EXPLAIN the crib dragging process — how you chose cribs, how you identified valid plaintext, and how you extended recovered segments]
+After computing pair_xor.bin = C1 ⊕ C2, we performed crib dragging. Since pair_xor.bin equals P1 ⊕ P2, guessing a word in one plaintext allows recovery of the corresponding segment in the other plaintext.
 
+If we assume a crib W appears in P1 at offset i, then:
+
+Recovered segment in P2 = (P1 ⊕ P2) ⊕ W
+
+We selected common English words and cryptography-related phrases such as “stream cipher”, “key reuse”, and “encryption” because they are contextually relevant to the lab and statistically likely to appear in instructional plaintext.
+
+At each offset, we XORed the crib with the corresponding bytes of pair_xor.bin. If the result produced readable ASCII text consistent with English structure, we recorded the offset and recovered segment.
+
+We avoided offsets dominated by 0x00 bytes, since those indicate identical plaintext characters (P1[i] = P2[i]) and produce trivial echo matches.
+
+The recovered phrases such as “secrecy into” and “never reus” demonstrate meaningful structure in the original plaintexts and confirm the effectiveness of the crib dragging attack.
+
+---
 ### Explanation of Key Reuse Weakness
 
-[EXPLAIN why reusing a one-time pad key (two-time pad) breaks security, i.e. C1 XOR C2 = P1 XOR P2, eliminating the key entirely]
+A one-time pad is only secure if the key is used exactly once. When the same keystream is reused for multiple messages, the security guarantee collapses.
+
+If:
+
+C1 = P1 ⊕ K
+C2 = P2 ⊕ K
+
+Then:
+
+C1 ⊕ C2 = (P1 ⊕ K) ⊕ (P2 ⊕ K)
+C1 ⊕ C2 = P1 ⊕ P2
+
+The key is completely eliminated from the equation.
+
+This exposes structural relationships between plaintexts and allows attackers to perform crib dragging to recover plaintext segments without ever knowing the key. This demonstrates why reusing a one-time pad (a “two-time pad”) breaks perfect secrecy.
 
 ---
 
 ## Key Lessons Learned
 
-- [SUMMARIZE key takeaway about XOR reversibility]
-- [SUMMARIZE key takeaway about small key spaces]
-- [SUMMARIZE key takeaway about known-plaintext attacks]
-- [SUMMARIZE key takeaway about key reuse]
+XOR Reversibility: XOR is fully reversible. If any two of {plaintext, ciphertext, key} are known, the third can be immediately recovered.
+
+Small Key Spaces: When keys are short or reused, patterns emerge and brute-force or structural attacks become feasible.
+
+Known-Plaintext Attacks: If part of the plaintext is predictable, XOR encryption can be broken by directly computing the key or recovering related plaintext segments.
+
+Key Reuse is Catastrophic: Reusing a one-time pad eliminates the key when ciphertexts are XORed together, exposing P1 ⊕ P2 and enabling crib dragging attacks that compromise confidentiality.
 
 ---
+
+### Questions
+1. Explain what is meant by a Two-Time Pad attack. How does it differ from a
+properly implemented One-Time Pad?
+
+A Two-Time Pad attack happens when the same key (or keystream) is used to encrypt more than one message with XOR. In a proper One-Time Pad, the key is random, the same length as the message, and used only once. When the key is reused, it creates a vulnerability because the two ciphertexts can be combined to remove the key. A correctly implemented One-Time Pad is perfectly secure, but reusing the key completely breaks that security.
+
+2. Given:
+C1 = P1 ⊕ K
+C2 = P2 ⊕ K
+Show mathematically (Using Pen and paper) why:
+C1 ⊕ C2 = P1 ⊕ P2
+
+![Task 4 - Question2](Screenshots/task4q4.png)
+
+3. Why does the encryption key disappear during the computation of C1 ⊕ C2?
+
+Because XOR has the property that any value XORed with itself equals zero:
+
+K ⊕ K = 0
+
+When we XOR the two ciphertexts, the two identical keys cancel each other out. That removes the key from the equation and leaves only the XOR of the two plaintexts.
+
+4. After computing C1 ⊕ C2, what type of information do you obtain? Is it plaintext?
+Explain clearly.
+
+We obtain P1 ⊕ P2, which is not normal readable plaintext. It is the XOR of both messages. However, it still contains structure and patterns. By making guesses about likely words, we can start recovering real pieces of the original messages.
+
+5. Why is English language redundancy useful in recovering plaintext from P1 ⊕ P2?
+
+English is predictable. Certain words like “the,” “and,” or “is” appear frequently. Sentences follow grammar rules and spacing patterns. Because of this, if we guess a common word and the result produces readable English on the other side, it is probably correct. That predictability is what makes crib dragging possible.
+
+6. Describe the concept of crib dragging. How does guessing a common English word
+help recover portions of the plaintext?
+
+Crib dragging means guessing a word that might appear in one of the messages and sliding it across the XOR result at different positions. At each position, we XOR the guessed word with the corresponding bytes. If the output looks like readable English, it suggests the guess is correct at that offset.
+
+7. If you correctly guess a word in P1, explain how you can recover the corresponding
+portion of P2.
+
+If we assume a word W appears in P1 at a certain offset, we can compute:
+
+Recovered part of P2 = (P1 ⊕ P2) ⊕ W
+
+Since:
+
+(P1 ⊕ P2) ⊕ P1 = P2
+
+A correct guess in one message directly reveals the corresponding part of the other message.
+
+8. Why is reusing a key in a stream cipher considered catastrophic for security?
+
+Stream ciphers encrypt by XORing plaintext with a keystream. If the same keystream is used more than once, attackers can XOR the ciphertexts together and eliminate the keystream. That exposes relationships between the plaintexts and allows recovery of parts of both messages. This completely defeats the purpose of encryption.
+
+9. How does this vulnerability relate to nonce reuse in AES-CTR mode?
+
+AES-CTR mode works like a stream cipher. It generates a keystream based on a key and a nonce. If the same key and nonce combination is reused, the same keystream is generated again. That creates the same problem as a two-time pad: XORing the ciphertexts removes the keystream and exposes P1 ⊕ P2.
+
+10. Suppose the key length were equal to the full plaintext length but still reused across
+two messages. Would the system remain secure? Justify your answer.
+
+No. Even if the key is random and the correct length, reusing it across two messages still allows C1 ⊕ C2 to eliminate the key. The system would still be vulnerable to a two-time pad attack.
+
+11. Reflect on this task: What real-world cryptographic implementation mistake does this
+exercise simulate?
+
+This simulates real-world cases where developers accidentally reuse encryption keys or nonces in stream ciphers or CTR mode. It shows how a small implementation mistake can completely break encryption.
+
+12. Why is it critical that a One-Time Pad key be:
+• Truly random?
+• Equal in length to the plaintext?
+• Never reused?
+
+Truly random:
+If it is predictable, patterns can be exploited.
+
+Equal in length to the plaintext:
+If it is shorter and repeats, patterns form and it becomes breakable like a repeating-key XOR.
+
+Never reused:
+If reused, the key cancels when ciphertexts are XORed, exposing P1 ⊕ P2 and allowing the attack we performed in this lab.
 
 ## Appendix
 
